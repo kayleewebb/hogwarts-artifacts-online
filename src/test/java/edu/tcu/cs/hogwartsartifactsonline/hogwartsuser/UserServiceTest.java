@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ class UserServiceTest {
 
     @Mock
     UserRepository userRepository;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     @InjectMocks
     UserService userService;
@@ -67,17 +71,22 @@ class UserServiceTest {
 
     @Test
     void testFindAllSuccess() {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userRepository.
         given(this.userRepository.findAll()).willReturn(this.hogwartsUsers);
 
+        // When. Act on the target behavior. Act steps should cover the method to be tested.
         List<HogwartsUser> actualUsers = this.userService.findAll();
 
+        // Then. Assert expected outcomes.
         assertThat(actualUsers.size()).isEqualTo(this.hogwartsUsers.size());
 
+        // Verify userRepository.findAll() is called exactly once.
         verify(this.userRepository, times(1)).findAll();
     }
 
     @Test
     void testFindByIdSuccess() {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userRepository.
         HogwartsUser u = new HogwartsUser();
         u.setId(1);
         u.setUsername("john");
@@ -87,8 +96,10 @@ class UserServiceTest {
 
         given(this.userRepository.findById(1)).willReturn(Optional.of(u)); // Define the behavior of the mock object.
 
+        // When. Act on the target behavior. Act steps should cover the method to be tested.
         HogwartsUser returnedUser = this.userService.findById(1);
 
+        // Then. Assert expected outcomes.
         assertThat(returnedUser.getId()).isEqualTo(u.getId());
         assertThat(returnedUser.getUsername()).isEqualTo(u.getUsername());
         assertThat(returnedUser.getPassword()).isEqualTo(u.getPassword());
@@ -123,6 +134,7 @@ class UserServiceTest {
         newUser.setEnabled(true);
         newUser.setRoles("user");
 
+        given(this.passwordEncoder.encode(newUser.getPassword())).willReturn("Encoded Password");
         given(this.userRepository.save(newUser)).willReturn(newUser);
 
         // When
