@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles(value = "dev")
 class UserControllerTest {
 
     @Autowired
@@ -76,8 +78,10 @@ class UserControllerTest {
 
     @Test
     void testFindAllUsersSuccess() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.findAll()).willReturn(this.users);
 
+        // When and then
         this.mockMvc.perform(get(this.baseUrl + "/users").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -91,8 +95,10 @@ class UserControllerTest {
 
     @Test
     void testFindUserByIdSuccess() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.findById(2)).willReturn(this.users.get(1));
 
+        // When and then
         this.mockMvc.perform(get(this.baseUrl + "/users/2").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -103,8 +109,10 @@ class UserControllerTest {
 
     @Test
     void testFindUserByIdNotFound() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.findById(5)).willThrow(new ObjectNotFoundException("user", 5));
 
+        // When and then
         this.mockMvc.perform(get(this.baseUrl + "/users/5").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
@@ -119,14 +127,16 @@ class UserControllerTest {
         user.setUsername("lily");
         user.setPassword("123456");
         user.setEnabled(true);
-        user.setRoles("admin user");
+        user.setRoles("admin user"); // The delimiter is space.
 
         String json = this.objectMapper.writeValueAsString(user);
 
         user.setId(4);
 
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.save(Mockito.any(HogwartsUser.class))).willReturn(user);
 
+        // When and then
         this.mockMvc.perform(post(this.baseUrl + "/users").contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -143,14 +153,16 @@ class UserControllerTest {
 
         HogwartsUser updatedUser = new HogwartsUser();
         updatedUser.setId(3);
-        updatedUser.setUsername("tom123");
+        updatedUser.setUsername("tom123"); // Username is changed. It was tom.
         updatedUser.setEnabled(false);
         updatedUser.setRoles("user");
 
         String json = this.objectMapper.writeValueAsString(userDto);
 
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.update(eq(3), Mockito.any(HogwartsUser.class))).willReturn(updatedUser);
 
+        // When and then
         this.mockMvc.perform(put(this.baseUrl + "/users/3").contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -163,12 +175,14 @@ class UserControllerTest {
 
     @Test
     void testUpdateUserErrorWithNonExistentId() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         given(this.userService.update(eq(5), Mockito.any(HogwartsUser.class))).willThrow(new ObjectNotFoundException("user", 5));
 
         UserDto userDto = new UserDto(5, "tom123", false, "user");
 
         String json = this.objectMapper.writeValueAsString(userDto);
 
+        // When and then
         this.mockMvc.perform(put(this.baseUrl + "/users/5").contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
@@ -178,8 +192,10 @@ class UserControllerTest {
 
     @Test
     void testDeleteUserSuccess() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         doNothing().when(this.userService).delete(2);
 
+        // When and then
         this.mockMvc.perform(delete(this.baseUrl + "/users/2").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -188,8 +204,10 @@ class UserControllerTest {
 
     @Test
     void testDeleteUserErrorWithNonExistentId() throws Exception {
+        // Given. Arrange inputs and targets. Define the behavior of Mock object userService.
         doThrow(new ObjectNotFoundException("user", 5)).when(this.userService).delete(5);
 
+        // When and then
         this.mockMvc.perform(delete(this.baseUrl + "/users/5").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
